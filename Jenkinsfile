@@ -1,7 +1,7 @@
 pipeline {
  agent none
  parameters {
-    string(name: 'ECRURL', defaultValue: '001647536300.dkr.ecr.ap-south-1.amazonaws.com', description: 'Please Enter your Docker ECR REGISTRY URL without https?')
+    string(name: 'ECRURL', defaultValue: '445343419895.dkr.ecr.ap-south-1.amazonaws.com', description: 'Please Enter your Docker ECR REGISTRY URL without https?')
     string(name: 'APPREPO', defaultValue: 'wezvatechfrontend', description: 'Please Enter your Docker App Repo Name:TAG?')
     string(name: 'REGION', defaultValue: 'ap-south-1', description: 'Please Enter your AWS Region?') 
  }
@@ -12,7 +12,7 @@ pipeline {
     {
       agent { label 'demo' }
       steps {
-        git branch: 'main', credentialsId: 'GitlabCred', url: 'https://gitlab.com/wezvaprojects/ninjas/jobready1.0/build/frontend/node-express.git'
+        git branch: 'main', credentialsId: 'GithubCred', url: 'https://github.com/Karnamakshay/Build-Frontend-NodeJS.git'
       }
      } 
 
@@ -99,7 +99,7 @@ pipeline {
     {
        agent { label 'kind' }
        steps {
-           git branch: 'main', credentialsId: 'GitlabCred', url: 'https://gitlab.com/wezvaprojects/ninjas/jobready1.0/build/frontend/node-express.git'
+           git branch: 'main', credentialsId: 'GithubCred', url: 'https://github.com/Karnamakshay/Build-Frontend-NodeJS.git'
 
            sh "kubectl create namespace wezvatechfb"
            withAWS(credentials:'AWSCred') {
