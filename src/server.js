@@ -35,10 +35,7 @@ const create = async () => {
      }
     });
 
-    if (!global.metricsInitialized) {
     client.collectDefaultMetrics();
-    global.metricsInitialized = true;
-}
     app.get('/metrics', async (req, res) => {
       res.set("Content-Type", client.register.contentType);
       res.end(await client.register.metrics());
