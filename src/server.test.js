@@ -3,25 +3,42 @@ const { create } = require('./server');
 
 describe('root', () => {
 
-    let app;
+    it('request root, returns html', async (done) => {
 
-    beforeAll(async () => {
-        app = await create();
+        const app = await create();
+
+        return request(app)
+            .get('/')
+            .expect(200)
+            .then((res) => {
+                expect(res.text).toContain('Welcome to Express');
+                done();
+            }).catch(err => done(err));;
     });
+    it('request api, returns json', async (done) => {
 
-    it('request root, returns html', async () => {
-        const res = await request(app).get('/');
-        expect(res.statusCode).toBe(200);
+        const app = await create();
+
+        return request(app)
+            .get('/api/hello')
+            .expect(200)
+            .then((res) => {
+                expect(res.body).toEqual({ hello: 'goodbye' });
+                done();
+            }).catch(err => done(err));;
+    });    
+    it('request invalid path, returns 404', async (done) => {
+
+        const app = await create();
+        const invalidPath = '/invalid-path';
+        const invalidPathError = `Cannot GET ${invalidPath}`;
+
+        return request(app)
+            .get(invalidPath)
+            .expect(404)
+            .then((res) => {
+                expect(res.text).toContain(invalidPathError);
+                done();
+            }).catch(err => done(err));;
     });
-
-    it('request api, returns json', async () => {
-        const res = await request(app).get('/api');
-        expect(res.statusCode).toBe(200);
-    });
-
-    it('request invalid path, returns 404', async () => {
-        const res = await request(app).get('/invalid-path');
-        expect(res.statusCode).toBe(404);
-    });
-
 });
