@@ -12,7 +12,7 @@ pipeline {
     {
       agent { label 'demo' }
       steps {
-        git branch: 'main', credentialsId: 'GithubCred', url: 'https://github.com/Karnamakshay/Build-Frontend-NodeJS.git'
+        git branch: 'feature', credentialsId: 'GithubCred', url: 'https://github.com/Karnamakshay/Build-Frontend-NodeJS.git'
       }
      } 
 
@@ -99,7 +99,7 @@ pipeline {
     {
        agent { label 'kind' }
        steps {
-           git branch: 'main', credentialsId: 'GithubCred', url: 'https://github.com/Karnamakshay/Build-Frontend-NodeJS.git'
+           git branch: 'feature', credentialsId: 'GithubCred', url: 'https://github.com/Karnamakshay/Build-Frontend-NodeJS.git'
 
            sh "kubectl create namespace wezvatechfb"
            withAWS(credentials:'AWSCred') {
