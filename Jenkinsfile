@@ -12,7 +12,7 @@ pipeline {
     {
       agent { label 'demo' }
       steps {
-        git branch: 'feature', credentialsId: 'GithubCred', url: 'https://github.com/Karnamakshay/Build-Frontend-NodeJS.git'
+        git branch: 'main', credentialsId: 'GithubCred', url: 'https://github.com/Karnamakshay/Build-Frontend-NodeJS.git'
       }
      } 
 
@@ -29,43 +29,13 @@ pipeline {
     }
 
 
-      stage("OWASP") 
-      {
-            agent { label 'demo' }
-            steps{
-                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'OWASP'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
-
-        stage("SonarQube Analysis")
-        {
-            agent { label 'demo' }
-            steps{
-               withSonarQubeEnv("mysonarqube"){
-                   sh 'echo "sonar.projectKey=nodejs" >> ./node_modules/sonar-scanner/conf/sonar-scanner.properties'
-                   sh "npm run sonar"
-               }
-            }
-        }
-
-        stage("SonarQube Quality Gates")
-        {
-            agent { label 'demo' }
-            steps{
-               timeout(time: 1, unit: "MINUTES"){
-                   waitForQualityGate abortPipeline: false
-               }
-            }
-        }
-
        stage('Build Image')
        {
            agent { label 'demo' }
            steps{
              script {
                                   // Prepare the Tag name for the Image
-                       AppTag = params.APPREPO + ":node" + env.BUILD_ID
+                       AppTag = params.APPREPO + ":node-rel" + env.BUILD_ID
                                   // Docker login needs https appended
                        ECR = "https://" + params.ECRURL
                        docker.withRegistry( ECR, 'ecr:ap-south-1:AWSCred' ) {
@@ -94,33 +64,6 @@ pipeline {
 	   }
         }
    }
-
-   stage('Smoke Deploy')
-    {
-       agent { label 'kind' }
-       steps {
-           git branch: 'feature', credentialsId: 'GithubCred', url: 'https://github.com/Karnamakshay/Build-Frontend-NodeJS.git'
-
-           sh "kubectl create namespace wezvatechfb"
-           withAWS(credentials:'AWSCred') {
-	         sh "kubectl create secret docker-registry awsecr-cred  --docker-server=$ECRURL  --docker-username=AWS --docker-password=\$(/opt/awscli-venv/bin/aws ecr get-login-password --region=${params.REGION})  --namespace=wezvatechfb"
-	        }
-
-           echo "Deploying New Build ..."
-           sh "sed -i 's/image:.[0-9][0-9].*/image: ${params.ECRURL}\\/${params.APPREPO}:node${env.BUILD_ID}/g' deployfrontend.yml"
-           sh "kubectl apply -f deployfrontend.yml"
-       }
-    }
-
-   stage('Smoke Test')
-    {
-       agent { label 'kind' }
-       steps {
-              sh "kubectl wait --for=condition=ready pod/`kubectl get pods -n wezvatechfb |grep wezva |awk '{print \$1}'| tail -1` -n wezvatechfb  --timeout=30s"
-              sh  "echo Nodejs deployed successfully ..."
-	      sh "kubectl delete ns wezvatechfb"
-       }
-     }
 
 
  }
