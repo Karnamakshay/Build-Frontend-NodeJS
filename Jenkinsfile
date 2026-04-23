@@ -78,22 +78,31 @@ pipeline {
            }
        }
 
-     stage ('Scan Image')
-     {
-        agent { label 'demo' }
-	steps {
-           echo "Scanning Image for Vulnerabilities"
-           sh "trivy image --offline-scan  ${params.APPREPO}:node${env.BUILD_ID} > trivyresults.txt"
+     stage ('Scan Image') {
+    agent { label 'demo' }
+    steps {
+        script {
+            def imageTag = "${params.APPREPO}:fb${env.BUILD_ID}"
+            
+            echo "Scanning Image for Vulnerabilities"
 
-           echo "Analyze Dockerfile for best practices ..."
-           sh "docker run --rm -i hadolint/hadolint < Dockerfile | tee -a dockerlinter.log"
-	}
-	post {
-          always {
-	    sh "docker rmi ${params.APPREPO}:node${env.BUILD_ID}"
-	   }
+            sh """
+            trivy image --no-progress \
+            --severity HIGH,CRITICAL \
+            --exit-code 1 \
+            ${imageTag} | tee trivyresults.txt
+            """
+
+            echo "Analyze Dockerfile for best practices ..."
+            sh "docker run --rm -i hadolint/hadolint < Dockerfile | tee dockerlinter.log"
         }
-   }
+    }
+    post {
+        always {
+            sh "docker rmi ${params.APPREPO}:fb${env.BUILD_ID} || true"
+        }
+    }
+}
 
    stage('Smoke Deploy')
     {
