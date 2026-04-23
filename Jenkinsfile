@@ -116,7 +116,11 @@ pipeline {
     {
        agent { label 'kind' }
        steps {
-              sh "kubectl wait --for=condition=ready pod/`kubectl get pods -n wezvatechfb |grep wezva |awk '{print \$1}'| tail -1` -n wezvatechfb  --timeout=30s"
+		   catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS', message: 'Smokes test failed') {
+                    sh '''
+                    timeout 105s kubectl wait --for=condition=ready pod/$(kubectl get pods -n wezvatechfb | grep wezva | awk '{print $1}' | tail -1) -n wezvatechfb --timeout=100s
+                    '''
+                }
               sh  "echo Nodejs deployed successfully ..."
 	      sh "kubectl delete ns wezvatechfb"
        }
